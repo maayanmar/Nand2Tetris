@@ -1,0 +1,92 @@
+// This file is part of nand2tetris, as taught in The Hebrew University, and
+// was written by Aviv Yaish. It is an extension to the specifications given
+// [here](https://www.nand2tetris.org) (Shimon Schocken and Noam Nisan, 2017),
+// as allowed by the Creative Common Attribution-NonCommercial-ShareAlike 3.0
+// Unported [License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
+
+// This chip is an extension of the regular CPU that uses the extended ALU.
+// If instruction[15]==0 or (instruction[14]==1 and instruction[13]==1),
+// then CpuMul behaves exactly the same as the regular CPU.
+// If instruction[15]==1 and instruction[14]==0 the chip will behave as follows:
+// | Instruction           | 15 | 14 | 13 | a | c1 | c2 | c3 | c4 | c5 | c6 |
+// |-----------------------|:--:|:--:|:--:|:-:|:--:|:--:|:--:|:--:|:--:|:--:|
+// | Regular a-instruction |  0 |  * |  * | * |  * |  * |  * |  * |  * |  * |
+// | Regular c-instruction |  1 |  1 |  1 | * |  * |  * |  * |  * |  * |  * |
+// | dest=A<<;jump         |  1 |  0 |  1 | 0 |  1 |  0 |  0 |  0 |  0 |  0 |
+// | dest=A>>;jump         |  1 |  0 |  1 | 0 |  0 |  0 |  0 |  0 |  0 |  0 |
+// | dest=D<<;jump         |  1 |  0 |  1 | 0 |  1 |  1 |  0 |  0 |  0 |  0 |
+// | dest=D>>;jump         |  1 |  0 |  1 | 0 |  0 |  1 |  0 |  0 |  0 |  0 |
+// | dest=M<<;jump         |  1 |  0 |  1 | 1 |  1 |  0 |  0 |  0 |  0 |  0 |
+// | dest=M>>;jump         |  1 |  0 |  1 | 1 |  0 |  0 |  0 |  0 |  0 |  0 |
+// Where:
+// - "<<" is a left shift, and ">>" is a right shift, as defined in project 2.
+//   These notations were chosen because they are used in real programming
+//   languages.
+// - dest and jump can take the same values as in the regular CPU.
+
+CHIP CpuMul {
+    IN  
+        inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset=1) or continue executing
+                         // the current program (reset=0).
+    OUT 
+        outM[16],        // M value output
+        writeM,          // Write into M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+    
+    PARTS:
+
+
+
+        // ********************* Ordinary CPU EXCEPT (XXX) ********************* //
+
+    Mux16(a=instruction, b=ALUout, sel=instruction[15], out=aRegIn); // ----<-------<-------<---ALU OUT----.
+                                                   //                                                      |
+    // ~ARegister loaded if instruction[5] = 1 (C-instruction A=*) || instruction[15] = 0  (A-instruction  |
+        Not(in=instruction[15], out=l1);           //                                                      |
+        And(a=instruction[15], b=instruction[5], out=l2);  //                                              |
+        Or(a=l1, b=l2, out=loadA);                 //                                                      |
+                                                   //                                                      |  
+    ARegister(in=aRegIn, load=loadA, out=aRegOut, out[0..14]=addressM); // -----------aRegOut--->--->----. |
+                                                   //                                                    | |             
+    // ~DRegister load if instruction[15] (C-instruction) && instruction[4] (conserning D=*)             | |
+        And(a=instruction[15], b=instruction[4], out=loadD);  //                                         | |  
+                                                  //                                                     | |
+    DRegister(in=ALUout, load=loadD, out=dRegOut);// ==============<ALU OUT<======>dRegOut(x)>====.----. | |
+                                                             //                                   |    | | |
+    // ~CentralMUX select M if instruction[12] (C-instruction) && instruction[15] (conserning M)  |    | | |
+        And(a=instruction[12], b=instruction[15], out=CentralMUXsel);  //                         |    ^ | |
+                                                             //                                   |    | | |
+    Mux16(a=aRegOut, b=inM, sel=CentralMUXsel, out=CentralMuxOut); // =<aRegOut<==>CentralMux(y)>=O====O=O |
+                                                                   //                             |    | | |                        
+                                                                   //                             |    | | |                          
+    // ALU (XXX) =========<<============================<<==================================<<====O----O-* | 
+    ExtendAlu(x=dRegOut, y=CentralMuxOut, instruction=instruction[6..14],     //                       |   |    
+                                         out=outM, out=ALUout, zr=zr, ng=ng); // ===>>=================O--*
+
+    // ~WriteM if instruction[15] (C-instruction) && instruction[3] (conserning M=*)
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+    // ********************* LOWER CPU HARDWARE ******************** //
+
+    
+    // ~PC is loaded only if it is an C-instruction and JUMP is true
+        And(a=instruction[15], b=JUMP, out=loadPC);
+    PC(in=aRegOut, load=loadPC, inc=true, reset=reset, out[0..14]=pc);
+
+    // JUMP CONDITIONS:    
+    Not(in=zr, out=notzr);
+    Not(in=ng, out=notng);
+    // ~null <=> false // JGT 
+        And(a=notzr, b=notng, out=JGT);
+    // ~JEQ <=> zr // JGE
+        Or(a=JGT, b=zr, out=JGE);
+    // ~JLT <=> ng // JNE <=> notzr // JLE
+        Or(a=ng, b=zr, out=JLE);
+    // ~JMP <=> true
+
+    Mux8Way(a=false, b=JGT, c=zr, d=JGE, e=ng, f=notzr, g=JLE, h=true, sel=instruction[0..2], out=JUMP);
+}
