@@ -1,0 +1,30 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/02/Inc16.hdl
+
+/**
+ * return 1 only if all the input bits are 1
+ */
+
+CHIP AndWay16 {
+    IN in[16];
+    OUT out[1];
+
+    PARTS:
+    And(a=in[0], b=in[1], out=out1);
+    And(a=in[2], b=in[3], out=out2);
+    And(a=in[4], b=in[5], out=out3);
+    And(a=in[6], b=in[7], out=out4);
+    And(a=in[8], b=in[9], out=out5);
+    And(a=in[10], b=in[11], out=out6);
+    And(a=in[12], b=in[13], out=out7);
+    And(a=in[14], b=in[15], out=out8);
+    And(a=out1, b=out2, out=out9);
+    And(a=out3, b=out4, out=out10);
+    And(a=out5, b=out6, out=out11);
+    And(a=out7, b=out8, out=out12);
+    And(a=out9, b=out10, out=out13);
+    And(a=out11, b=out12, out=out14);
+    And(a=out13, b=out14, out=out);
+}
