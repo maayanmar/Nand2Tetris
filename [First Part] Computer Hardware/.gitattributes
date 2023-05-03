@@ -1,4 +1,1 @@
-*.vhd linguist-language=VHDL
-*.vhdl linguist-language=VHDL
-*.v languist-language=Verilog
-*.sv linguist-language=SystemVerilog
+*.hdl linguist-language=HDL
