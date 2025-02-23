@@ -2,7 +2,10 @@
 # Nand2Tetris Project
 This repository contains my implementation for the Nand2Tetris project, which is a university course that teaches how to build a computer from scratch. The project covers both the hardware and software aspects of building a computer.
 
-The project is divided into two parts: the first part covers building the hardware of the computer, and the second part covers building the software that runs on the computer.
+The project is divided into three parts: 
+1. Building the hardware of the computer from scratch using HDL
+2. Engineering & crafting the computer's compiler
+3. Creating a simple operating system
 
 ## Hardware
 The Hardware section of the project covers building the basic logic gates using the NAND gate and combining them to build more complex components such as adders, registers, and memory units. The final result of this section is a complete Hack computer with a CPU, memory, and input/output devices.
