@@ -14,6 +14,3 @@ The Compiler section of the project covers building a compiler for a Java-like l
 The OS section of the project covers building a simple operating system for the Hack computer. The operating system provides basic functionality such as screen and keyboard communication, mathematical calculations, and data storage.
 
 Each section of the project has its own README file that provides more information on the implementation details and how to run the code.
-
-## Conclusion
-The Nand2Tetris project is an excellent way to learn how computers work at a fundamental level. The project covers both the hardware and software aspects of building a computer, giving a complete understanding of how computers work from the ground up. My implementation of the project can be used as a reference for anyone interested in learning more about computer systems.
